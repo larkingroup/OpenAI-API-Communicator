@@ -1,52 +1,46 @@
-# OpenAI API Communicator
+# OpenAI Chat
 
-A local GPT chat client with a Qt GUI and optional CLI mode.
+A simple, cross-platform desktop chat client for OpenAI's API.
 
 ## Features
-- API key field with secure save option (keyring)
-- Model categories with refresh from the API
-- Model stats panel with pricing metadata
-- System prompt presets and editor
-- Wrapper prompt layer (toggle in UI)
-- Pricing reload button reads static `model-catalog.json`
-- Conversation history stored locally in JSON (multiple chats, per-conversation model)
-- Chat-style Qt GUI plus CLI mode
 
-## Install
+- Clean chat interface (like ChatGPT)
+- Chat history with sidebar
+- Multiple model support (GPT-4o, GPT-4, GPT-3.5, o1, o3-mini)
+- Works on Windows, macOS, and Linux
+- Enter sends message, Shift+Enter for new line
+
+## Quick Start
+
 ```bash
-python -m pip install -r requirements.txt
+cd src
+dotnet run
 ```
 
-## Run (GUI)
+## Build
+
 ```bash
-python main.py
+cd src
+dotnet build -c Release
 ```
 
-## Run (CLI)
-```bash
-python main.py --cli
-```
+The executable will be in `src/bin/Release/net8.0/`
 
-## API Key
-- Enter it in the GUI and click Save Key (stored in system keyring when available), or
-- Set `OPENAI_API_KEY` in your environment.
+## Requirements
 
-## Local storage
-- Config: `~/.openai-api-communicator/config.json`
-- Conversations: `~/.openai-api-communicator/history.json`
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- OpenAI API key from [platform.openai.com](https://platform.openai.com/api-keys)
 
-## Catalog and prompts
-- Model catalog: `model-catalog.json` (categories, release order, pricing metadata)
-- Prompt presets: `system-prompts.json`
-- Wrapper prompt: `wrapper-prompt.json`
-- Models are sorted oldest-to-newest using API timestamps when available; catalog release order is the fallback.
+## Usage
 
-## Pricing updates
-- Use the **Reload Pricing** button in the sidebar to re-read the local `model-catalog.json`.
-- If you change prices, edit `model-catalog.json` directly.
+1. Run the app
+2. Enter your OpenAI API key
+3. Select a model
+4. Start chatting!
 
-Notes:
-- Pricing is read from `model-catalog.json` and may need updates.
-- Wrapper prompt runs before the selected system prompt; disable it in the UI or CLI `/wrapper off`.
-- The API key is stored in the system keyring when available; otherwise it falls back to plain text config storage.
-- Model categories are inferred from model IDs returned by the API.
+## Data Storage
+
+Your data is stored locally in `%AppData%/OpenAICommunicator/` (Windows) or `~/.config/OpenAICommunicator/` (Linux/macOS):
+
+- `settings.json` - API key
+- `history.json` - Chat history

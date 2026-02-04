@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:OpenAICommunicator.ViewModels"
+        xmlns:models="using:OpenAICommunicator.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+        x:Class="OpenAICommunicator.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="OpenAI Chat"
+        Width="1000" Height="700"
+        MinWidth="500" MinHeight="400">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <Window.Styles>
+        <Style Selector="Border.user-message">
+            <Setter Property="Background" Value="#0078D4"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="MaxWidth" Value="500"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="Margin" Value="60,4,16,4"/>
+        </Style>
+        <Style Selector="Border.user-message TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+        
+        <Style Selector="Border.assistant-message">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="16,12"/>
+            <Setter Property="MaxWidth" Value="500"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="16,4,60,4"/>
+        </Style>
+        <Style Selector="Border.assistant-message TextBlock">
+            <Setter Property="Foreground" Value="#1A1A1A"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style Selector="Button.sidebar-item">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="CornerRadius" Value="8"/>
+        </Style>
+        <Style Selector="Button.sidebar-item:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E8E8E8"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid ColumnDefinitions="Auto,*">
+        
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="#F5F5F5" Width="260"
+                IsVisible="{Binding ShowSidebar}"
+                BorderBrush="#E0E0E0" BorderThickness="0,0,1,0">
+            <Grid RowDefinitions="Auto,*">
+                
+                <!-- New Chat Button -->
+                <Button Grid.Row="0" Command="{Binding NewChatCommand}"
+                        Margin="12" Padding="12,10" CornerRadius="8"
+                        HorizontalAlignment="Stretch">
+                    <TextBlock Text="+ New Chat" FontWeight="SemiBold"/>
+                </Button>
+                
+                <!-- Conversation List -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Conversations}" Margin="8,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="models:Conversation">
+                                <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                    <Button Grid.Column="0" Classes="sidebar-item"
+                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectConversationCommand}"
+                                            CommandParameter="{Binding}">
+                                        <TextBlock Text="{Binding Title}" 
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </Button>
+                                    <Button Grid.Column="1" 
+                                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DeleteConversationCommand}"
+                                            CommandParameter="{Binding}"
+                                            Background="Transparent"
+                                            Padding="8,4"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="x" Foreground="#999"/>
+                                    </Button>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Main Chat Area -->
+        <Grid Grid.Column="1" RowDefinitions="Auto,*,Auto">
+            
+            <!-- Header -->
+            <Border Grid.Row="0" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="12,10">
+                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+                    <Button Grid.Column="0" Command="{Binding ToggleSidebarCommand}"
+                            Background="Transparent" Padding="8" Margin="0,0,8,0">
+                        <TextBlock Text="=" FontSize="18"/>
+                    </Button>
+                    
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableModels}" 
+                              SelectedItem="{Binding SelectedModel}"
+                              MinWidth="140" VerticalAlignment="Center"/>
+                    
+                    <Button Grid.Column="2" Command="{Binding ToggleSettingsCommand}" 
+                            Content="API Key" Margin="8,0" VerticalAlignment="Center"
+                            Padding="12,6"/>
+                </Grid>
+            </Border>
+
+            <!-- Settings Panel -->
+            <Border Grid.Row="1" Background="#FFF8E1" Padding="16" 
+                    IsVisible="{Binding ShowSettings}" VerticalAlignment="Top" ZIndex="10">
+                <StackPanel Spacing="12" MaxWidth="400" HorizontalAlignment="Center">
+                    <TextBlock Text="Enter your OpenAI API Key" 
+                               FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                    <TextBox Text="{Binding ApiKey}" 
+                             Watermark="sk-..."
+                             HorizontalAlignment="Stretch"/>
+                    <TextBlock Text="Your key is saved locally in AppData."
+                               FontSize="12" Foreground="#666" HorizontalAlignment="Center"/>
+                    <Button Content="Done" 
+                            Command="{Binding ToggleSettingsCommand}"
+                            IsEnabled="{Binding HasApiKey}"
+                            HorizontalAlignment="Center"
+                            Padding="24,8"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Messages Area -->
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Messages}" Margin="0,8">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:ChatMessage">
+                            <Border Classes.user-message="{Binding IsUser}"
+                                    Classes.assistant-message="{Binding IsAssistant}">
+                                <TextBlock Text="{Binding Content}" TextWrapping="Wrap"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Error Message -->
+            <Border Grid.Row="1" Background="#FFEBEE" Padding="12" Margin="16"
+                    CornerRadius="8" VerticalAlignment="Bottom"
+                    IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#C62828" TextWrapping="Wrap"/>
+            </Border>
+
+            <!-- Loading indicator -->
+            <Border Grid.Row="1" Background="#F0F0F0" CornerRadius="16" Padding="16,8"
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Margin="16,0,0,8"
+                    IsVisible="{Binding IsSending}">
+                <TextBlock Text="Thinking..." Foreground="#666"/>
+            </Border>
+
+            <!-- Input Area -->
+            <Border Grid.Row="2" Background="#FAFAFA" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBox Grid.Column="0"
+                             Text="{Binding MessageInput}"
+                             Watermark="Type your message..."
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             MaxHeight="120"
+                             MinHeight="40"
+                             CornerRadius="20"
+                             Padding="16,10"
+                             KeyDown="InputBox_KeyDown"/>
+                    
+                    <Button Grid.Column="1" 
+                            Command="{Binding SendMessageCommand}"
+                            IsEnabled="{Binding CanSend}"
+                            Margin="8,0,0,0"
+                            Padding="16,10"
+                            CornerRadius="20"
+                            VerticalAlignment="Bottom"
+                            Content="Send"/>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
