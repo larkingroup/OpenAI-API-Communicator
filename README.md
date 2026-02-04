@@ -40,7 +40,11 @@ The executable will be in `src/bin/Release/net8.0/`
 
 ## Data Storage
 
-Your data is stored locally in `%AppData%/OpenAICommunicator/` (Windows) or `~/.config/OpenAICommunicator/` (Linux/macOS):
+**API Key:**
+- **Windows** - Windows Credential Manager (secure, not in a file)
+- **Linux** - `~/.config/OpenAICommunicator/key` with 600 permissions (owner-only)
+- **Alternative** - Set `OPENAI_API_KEY` environment variable
 
-- `settings.json` - API key
-- `history.json` - Chat history
+**Chat History:** 
+- `%AppData%/OpenAICommunicator/history.json` (Windows)
+- `~/.config/OpenAICommunicator/history.json` (Linux)
